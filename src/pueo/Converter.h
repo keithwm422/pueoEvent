@@ -67,6 +67,7 @@ namespace pueo
 PUEO_CONVERT_TYPE(/*|*/ waveform,  /*|*/  full_waveforms, /*|*/ pueo::RawEvent,     /*|*/ nullptr,    /*|*/ 0           )\
 PUEO_CONVERT_TYPE(/*|*/ header,    /*|*/  full_waveforms, /*|*/ pueo::RawHeader,    /*|*/ nullptr,    /*|*/ 0           )\
 PUEO_CONVERT_TYPE(/*|*/ attitude,  /*|*/  nav_att,        /*|*/ pueo::nav::Attitude,/*|*/ nullptr,    /*|*/ 0           )\
+PUEO_CONVERT_TYPE(/*|*/ hsk,       /*|*/  sensors_telem,  /*|*/ pueo::hsk::Hsk,     /*|*/ nullptr,    /*|*/ 1           )\
 
 
 
