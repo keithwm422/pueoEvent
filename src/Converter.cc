@@ -28,6 +28,7 @@
 #include "pueo/RawEvent.h"
 #include "pueo/RawHeader.h"
 #include "pueo/Nav.h"
+#include "pueo/Hsk.h"
 
 
 #include "TFile.h"

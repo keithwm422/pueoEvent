@@ -10,6 +10,7 @@ set(HEADER_FILES
   src/pueo/Dataset.h
   src/pueo/GeomTool.h
   src/pueo/Nav.h
+  src/pueo/Hsk.h
   src/pueo/RawEvent.h
   src/pueo/RawHeader.h
   src/pueo/TruthEvent.h
@@ -22,6 +23,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   src/Dataset.cc
   src/GeomTool.cc
   src/Nav.cc
+  src/Hsk.cc
   src/RawEvent.cc
   src/RawHeader.cc
   src/TruthEvent.cc

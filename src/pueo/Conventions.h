@@ -54,7 +54,6 @@ namespace  pueo
     constexpr int NUM_RF_CHANNELS = NUM_POLS *NUM_ANTS;
     constexpr int MAX_NUMBER_SAMPLES = 1024; // always 1024 for PUEO now
     constexpr int NUM_BEAMS = 48;
-    constexpr int NUM_SURF_SLOTS = 28; // this is not the number of surfs, but the number of surf slots
   }
 
 //Now some geometry and polarisation considerations

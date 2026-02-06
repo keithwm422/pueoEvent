@@ -50,33 +50,34 @@ namespace pueo
     // per class there will be a surf array that has the surf information and beam array inside it
 
     // then totally different class for the trigger information and l2 readout time, etc
-    class Hsk: public TObject
-    {
-     public:
-       Hsk() {;}
-#ifdef HAVE_PUEORAWDATA
-       Hsk(const pueo_sensors_telem_t *hsk);
-#endif
-      virtual ~hsk(){;}
-      Uint_t timeref_secs=0;
-      UShort_t sensor_id_magic=0;
-      UShort_t num_packets=0;
-      std::vector<Sensor> sensors;
-      ClassDef(Hsk,1);
-    };
     class Sensor: public TObject
     {
      public:
        Sensor() {;}
        virtual ~Sensor() {;}
        UShort_t sensor_id=0;
-       uint8_t relsecs=0;
-       union { // expanded to 32 bits 
-            Float_t fval;
-            Int_t ival;
-            Uint_t uval;
-       } val;
+       UShort_t time_ms=0;
+       UInt_t time_secs=0;
+       //union { // expanded to 32 bits 
+       Float_t fval;
+       Int_t ival;
+       UInt_t uval;
+       //} val;
        ClassDef(Sensor,1);
+    };
+    class Hsk: public TObject
+    {
+     public:
+       Hsk() {;}
+#ifdef HAVE_PUEORAWDATA
+       //Hsk(const pueo_sensors_telem_t *hsk);
+       Hsk(const pueo_sensors_disk_t *hsk,int numsensors);
+#endif
+      virtual ~Hsk(){;}
+      UShort_t sensor_id_magic=0;
+      UShort_t num_packets=0;
+      std::vector<Sensor> sensors;
+      ClassDef(Hsk,1);
     };
   }
 }
