@@ -1,7 +1,7 @@
 /****************************************************************************************
-*  GeomTool.cc            Implementation of the PUEO Navigation classes
+*  pueo/Hsk.h            Implementation of the PUEO hsk sensor class
 * 
-*  Cosmin Deaconu <cozzyd@kicp.uchicago.edu>
+*  Keith McBride <kmcbride@uchicago.edu>
 *
 *  (C) 2023-, The Payload for Ultrahigh Energy Observations (PUEO) Collaboration
 * 
@@ -26,49 +26,19 @@
 #include "pueo/Hsk.h" 
 
 ClassImp(pueo::hsk::Sensor); 
-ClassImp(pueo::hsk::Hsk); 
 
 #ifdef HAVE_PUEORAWDATA
 
-/*pueo::hsk::Hsk::Hsk(const pueo_sensors_telem_t *hsk) :
-  timeref_secs(hsk->timeref_secs),
-  sensor_id_magic(hsk->sensor_id_magic),
-  num_packets(hsk->num_packets)
+pueo::hsk::Sensor::Sensor(const pueo_sensors_disk_t *hsk,int whichsensor) :
+  which_sensor(whichsensor),
+  sensor_id(hsk->sensors[whichsensor].sensor_id),
+  time_ms(hsk->sensors[whichsensor].time_ms),
+  time_secs(hsk->sensors[whichsensor].time_secs),
+  fval((Float_t) hsk->sensors[whichsensor].val.fval),
+  ival((Int_t) hsk->sensors[whichsensor].val.ival),
+  uval((UInt_t) hsk->sensors[whichsensor].val.uval)
 {
-    // Implementation to initialize Hsk from pueo_sensors_telem_t
-    for(int i=0; i < hsk->num_packets; ++i)
-    {
-        pueo::hsk::Sensor thisSensor;
-        const pueo_sensor_telem_t &rawSensor = hsk->sensors[i];
-        thisSensor.sensor_id = rawSensor.sensor_id;
-        thisSensor.relsecs = rawSensor.relsecs;
-        thisSensor.val.fval = rawSensor.val.fval;
-        thisSensor.val.ival = rawSensor.val.ival;
-        thisSensor.val.uval = rawSensor.val.uval;
-       sensors.push_back(thisSensor);    // Populate sensor data
-    } // woah is this right?????
-}*/
-pueo::hsk::Hsk::Hsk(const pueo_sensors_disk_t *hsk, int numsensors) :
-  sensor_id_magic(hsk->sensor_id_magic),
-  num_packets(hsk->num_packets)
-{
-    // Implementation to initialize Hsk from pueo_sensors_telem_t
-    for(int i=0; i < numsensors; ++i)
-    {
-        pueo::hsk::Sensor thisSensor;
-        const pueo_sensor_disk_t &rawSensor = hsk->sensors[i];
-        thisSensor.sensor_id = rawSensor.sensor_id;
-        thisSensor.time_ms = rawSensor.time_ms;
-        thisSensor.time_secs = rawSensor.time_secs;
-        //thisSensor.val = rawSensor.val;
-        //thisSensor.val.fval = (Float_t) rawSensor.val.fval;
-        //thisSensor.val.ival = (Int_t) rawSensor.val.ival;
-        //thisSensor.val.uval = (UInt_t) rawSensor.val.uval;
-        thisSensor.fval = (Float_t) rawSensor.val.fval;
-        thisSensor.ival = (Int_t) rawSensor.val.ival;
-        thisSensor.uval = (UInt_t) rawSensor.val.uval;
-       sensors.push_back(thisSensor);    // Populate sensor data
-    } // woah is this right?????
+    // Implementation to initialize Hsk from pueo_sensor_disk_t
 }
 
 

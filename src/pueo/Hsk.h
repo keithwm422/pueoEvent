@@ -1,9 +1,9 @@
 /****************************************************************************************
-*  pueo/Nav.h             PUEO Nav Storage
+*  pueo/Hsk.h             PUEO Hsk sensors
 *  
-*  Navigation storage classes
+*  Housekeeping sensor class
 * 
-*  Cosmin Deaconu <cozzyd@kicp.uchicago.edu>    
+*  Keith McBride <kmcbride@uchicago.edu> based on Cosmin Deaconu's work on the attitude class
 *
 *  (C) 2023-, The Payload for Ultrahigh Energy Observations (PUEO) Collaboration
 * 
@@ -41,20 +41,19 @@ namespace pueo
 
   namespace hsk 
   {
-
-
-
     /** @defgroup rootclasses The ROOT Classes
      * These are the ROOT clases that make up the event reader
      */
-    // per class there will be a surf array that has the surf information and beam array inside it
-
-    // then totally different class for the trigger information and l2 readout time, etc
+    // per obj there will be a sensor that has values and time for measurement
     class Sensor: public TObject
     {
      public:
        Sensor() {;}
+#ifdef HAVE_PUEORAWDATA
+       Sensor(const pueo_sensors_disk_t *hsk, int whichsensor);
+#endif
        virtual ~Sensor() {;}
+       int which_sensor=0;
        UShort_t sensor_id=0;
        UShort_t time_ms=0;
        UInt_t time_secs=0;
@@ -64,20 +63,6 @@ namespace pueo
        UInt_t uval;
        //} val;
        ClassDef(Sensor,1);
-    };
-    class Hsk: public TObject
-    {
-     public:
-       Hsk() {;}
-#ifdef HAVE_PUEORAWDATA
-       //Hsk(const pueo_sensors_telem_t *hsk);
-       Hsk(const pueo_sensors_disk_t *hsk,int numsensors);
-#endif
-      virtual ~Hsk(){;}
-      UShort_t sensor_id_magic=0;
-      UShort_t num_packets=0;
-      std::vector<Sensor> sensors;
-      ClassDef(Hsk,1);
     };
   }
 }
