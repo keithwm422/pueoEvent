@@ -1,7 +1,7 @@
 /****************************************************************************************
-*  GeomTool.cc            Implementation of the PUEO Navigation classes
+*  Daqhsk.cc            Implementation of the PUEO Daqhsk classes
 * 
-*  Cosmin Deaconu <cozzyd@kicp.uchicago.edu>
+*  Kevin McBride <kmcbride@uchicago.edu>
 *
 *  (C) 2023-, The Payload for Ultrahigh Energy Observations (PUEO) Collaboration
 * 

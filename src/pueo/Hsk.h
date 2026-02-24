@@ -61,8 +61,12 @@ namespace pueo
        Float_t fval;
        Int_t ival;
        UInt_t uval;
+       std::string subsys;
+       std::string sens_name;
+       char typetag;
+       char kind_unit;
        //} val;
-       ClassDef(Sensor,1);
+       ClassDef(Sensor,2);
     };
   }
 }

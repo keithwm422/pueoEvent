@@ -1,9 +1,9 @@
 /****************************************************************************************
-*  pueo/Nav.h             PUEO Nav Storage
+*  pueo/Daqhsk.h             PUEO Nav Storage
 *  
-*  Navigation storage classes
+*  Daqhsk storage classes
 * 
-*  Cosmin Deaconu <cozzyd@kicp.uchicago.edu>    
+*  Keith McBride <kmcbride@uchicago.edu>    
 *
 *  (C) 2023-, The Payload for Ultrahigh Energy Observations (PUEO) Collaboration
 * 
@@ -98,7 +98,6 @@ namespace pueo
       public: 
         Beam() {;}
         UInt_t threshold=0;
-        UInt_t pseudothreshold=0;
         UInt_t pseudothreshold=0;
         UShort_t scaler=0;
         UShort_t pseudoscaler=0;
