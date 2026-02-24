@@ -29,7 +29,10 @@
 
 
 #include <vector>
-#ifdef HAVE_PUEORAWDATA 
+#include "Compression.h"
+
+
+#ifdef HAVE_PUEORAWDATA
 #include <pueo/rawdata.h>
 #endif
 
@@ -64,7 +67,7 @@ namespace pueo
 #define PUEO_CONVERTIBLE_TYPES(PUEO_CONVERT_TYPE)\
 /*                  |  tag           |     raw type        | ROOT type                |  postprocessor  | has_arity    */\
 /*==================================================================================================================== */\
-PUEO_CONVERT_TYPE(/*|*/ waveform,  /*|*/  full_waveforms, /*|*/ pueo::RawEvent,       /*|*/ nullptr,    /*|*/ 0           )\
+PUEO_CONVERT_TYPE(/*|*/ event,     /*|*/  full_waveforms, /*|*/ pueo::RawEvent,       /*|*/ nullptr,    /*|*/ 0           )\
 PUEO_CONVERT_TYPE(/*|*/ header,    /*|*/  full_waveforms, /*|*/ pueo::RawHeader,      /*|*/ nullptr,    /*|*/ 0           )\
 PUEO_CONVERT_TYPE(/*|*/ attitude,  /*|*/  nav_att,        /*|*/ pueo::nav::Attitude,  /*|*/ nullptr,    /*|*/ 0           )\
 PUEO_CONVERT_TYPE(/*|*/ sunsensors,/*|*/  ss,             /*|*/ pueo::nav::SunSensors,/*|*/ nullptr,    /*|*/ 0           )\
@@ -88,6 +91,9 @@ template <> inline int arity<pueo_sensors_disk_t> (const pueo_sensors_disk_t * d
       const char * tmp_suffix = ".tmp";
       const char * postprocess_args = nullptr;
       const char * sort_by = nullptr;
+      ROOT::RCompressionSetting::EAlgorithm::EValues compression_algo = ROOT::RCompressionSetting::EAlgorithm::kZSTD;
+      int compression_level = 3;
+
     };
 
    /** Convert input files to output file
@@ -96,7 +102,7 @@ template <> inline int arity<pueo_sensors_disk_t> (const pueo_sensors_disk_t * d
      * Note that this is fraught with peril as there is not necessarily a one-to-one mapping 
      * (e.g. full_waveforms_t can either generate RawEvents or RawHeaders and auto won't know which one you want!)
      *
-     * We only allow one type per output file, not supporting heterogenous files 
+     * We only allow one type per output file, not supporting heterogenous files
      * (that could be done, but in practice is not that useful given how we wrote out the data and the fact that there is no one-to-one mapping)
      *
      * @param typetag the type tag, you can use one of the helper constants under convert::typetags, or pass empty, 
