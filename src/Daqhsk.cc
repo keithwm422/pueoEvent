@@ -95,14 +95,14 @@ pueo::daqhsk::Daqhsk::Daqhsk(const pueo_daq_hsk_t *daqhsk) :
         {
         const auto &src_beam = src_surf.beams[b];
         auto &dst_beam = dst_surf.Beams[b];
-    
         dst_beam.threshold = src_beam.threshold;
         dst_beam.pseudothreshold = src_beam.pseudothreshold;
         dst_beam.scaler = src_beam.scaler;
         dst_beam.pseudoscaler = src_beam.pseudoscaler;
         dst_beam.inMask = src_beam.in_mask;
         dst_beam.scalerBank = src_beam.scaler_bank;
+        }
+    }
 }
-
 
 #endif

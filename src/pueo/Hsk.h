@@ -24,8 +24,8 @@
 ****************************************************************************************/ 
 
 
-#ifndef PUEO_DAQHSK_H
-#define PUEO_DAQHSK_H
+#ifndef PUEO_HSK_H
+#define PUEO_HSK_H
 
 //Includes
 #include <TObject.h>
@@ -72,4 +72,4 @@ namespace pueo
 }
 
 
-#endif //ADU5PAT_H
+#endif //

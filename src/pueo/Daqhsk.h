@@ -29,7 +29,7 @@
 
 //Includes
 #include <TObject.h>
-
+#include "pueo/Conventions.h"
 #include <array>
 #ifdef HAVE_PUEORAWDATA
 #include "pueo/rawdata.h"
@@ -42,6 +42,32 @@ namespace pueo
   namespace daqhsk 
   {
 
+    class Beam:  public TObject{
+      public: 
+        Beam() {;}
+        UInt_t threshold=0;
+        UInt_t pseudothreshold=0;
+        UShort_t scaler=0;
+        UShort_t pseudoscaler=0;
+        Bool_t inMask=0;
+        Bool_t scalerBank=0;
+        ClassDef(Beam,1);
+    };
+    class Surf: public TObject{
+     public:
+       Surf() {;}
+       virtual ~Surf() {;}
+       // where are the constants like PUEO_NSURF and PUEO_NBEAMS
+       std::array<UInt_t,8> agc_scale;// this should be PUEO_NCHAN_PER_SURF
+       std::array<UInt_t,8> agc_offset; // this should be PUEO_NCHAN_PER_SURF
+       UInt_t readoutTime = 0;
+       UInt_t readoutTimeNsecs = 0;
+       UInt_t ms_elapsed = 0;
+       uint8_t surf_link = 0;
+       uint8_t surf_slot = 0;
+       std::array<daqhsk::Beam,pueo::k::NUM_BEAMS> Beams; 
+       ClassDef(Surf,1);
+    };
 
 
     /** @defgroup rootclasses The ROOT Classes
@@ -90,36 +116,8 @@ namespace pueo
        UShort_t latency = 0;
        UShort_t offset = 0;
        UShort_t pps_trig_offset = 0;
-       std::array<daqhsk::Surf, NUM_SURF_SLOTS> Surfs;
+       std::array<daqhsk::Surf, pueo::k::NUM_SURF_SLOTS> Surfs;
       ClassDef(Daqhsk,1);
-    };
-    class Beam:  public TObject
-    {
-      public: 
-        Beam() {;}
-        UInt_t threshold=0;
-        UInt_t pseudothreshold=0;
-        UShort_t scaler=0;
-        UShort_t pseudoscaler=0;
-        Bool_t inMask=0;
-        Bool_t scalerBank=0;
-        ClassDef(Beam,1);
-      };
-    class Surf: public TObject
-    {
-     public:
-       Surf() {;}
-       virtual ~Surf() {;}
-       // where are the constants like PUEO_NSURF and PUEO_NBEAMS
-       std::array<UInt_t,8> agc_scale;// this should be PUEO_NCHAN_PER_SURF
-       std::array<UInt_t,8> agc_offset; // this should be PUEO_NCHAN_PER_SURF
-       UInt_t readoutTime = 0;
-       UInt_t readoutTimeNsecs = 0;
-       UInt_t ms_elapsed = 0;
-       uint8_t surf_link = 0;
-       uint8_t surf_slot = 0;
-       std::array<daqhsk::Beam,NUM_BEAMS> Beams; 
-       ClassDef(Surf,1);
     };
   }
 }
