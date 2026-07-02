@@ -347,6 +347,10 @@ Bool_t pueo::Dataset::maybeInvertPolarity(UInt_t eventNumber){
   return false;
 }
 
+UInt_t pueo::Dataset::gimmeHeaderL2(){
+    return fHeader->L2Mask;
+}
+
 int pueo::Dataset::getEntry(int entryNumber)
 {
 

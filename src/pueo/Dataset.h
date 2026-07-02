@@ -244,6 +244,8 @@ namespace pueo
       /** Want to see what run you previously loaded?  Look no further */
       int getCurrRun() { return currRun; };
 
+      UInt_t gimmeHeaderL2();
+
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */
       bool maybeInvertPolarity(UInt_t eventNumber);
 
