@@ -256,6 +256,7 @@ namespace pueo
       UInt_t gimmeTriggerCount(int inentry=0);
       UInt_t gimmeCurrentSecond (int inentry=0);
       UInt_t gimmePhisExlcudeBits();
+      bool IsL2PhiMasked(int whichPhi, int whichPol);
       bool IsThisPhiPolExcluded(int whichPhi, int whichPol);
 
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */

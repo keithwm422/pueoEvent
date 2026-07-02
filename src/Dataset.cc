@@ -282,13 +282,39 @@ UInt_t pueo::Dataset::gimmePhisExlcudeBits(){
 }
 
 // this function returns false if you send it values out of the bounds or if the 
-bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol){
+bool pueo::Dataset::IsL2PhiMasked(int whichPhi, int whichPol){
   if(whichPhi>11 || whichPhi<0) return false;
   if(whichPol!=0 && whichPol!=1) return false;
   UInt_t thisphiexclude = gimmePhisExlcudeBits();
   int bit_position = (whichPol*12) + whichPhi;
   return ( (uint32_t ) (thisphiexclude) >> bit_position) & 1;
 }
+
+/**
+ * Wrapper function that accepts a wide phi sector (0-23) and maps it 
+ * to the underlying overlapping bit mask structure.
+ */
+bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol) {
+    // 1. Guard clause for valid channel range
+    if (whichPhi < 0 || whichPhi > 23) {
+      return false;
+    }
+    int bit_a = (whichPhi + 1) / 2;
+    if (bit_a > 11) bit_a -= 12; // Handle wrap-around for upper channels
+    // Second possible bit that could cover this channel
+    int bit_b = (whichPhi) / 2;
+    if (bit_b == 0) bit_b = 11; // Handle wrap-around boundary cases
+    else bit_b = bit_b - 1;
+    // Special edge cases for the wrap-around logic at the boundaries (Channels 0, 1, 2, 23)
+    if (whichPhi == 0)  { bit_a = 11; bit_b = 11; } // Channel 0 is only in Bit 11
+    if (whichPhi == 23) { bit_a = 11; bit_b = 11; } // Channel 23 is only in Bit 11
+    if (whichPhi == 1)  { bit_a = 0;  bit_b = 11; } // Channel 1 is in Bit 0 and Bit 11
+    if (whichPhi == 2)  { bit_a = 0;  bit_b = 11; } // Channel 2 is in Bit 0 and Bit 11
+    bool match_a = IsL2PhiMasked(bit_a,whichPol);
+    bool match_b = IsL2PhiMasked(bit_b,whichPol);
+    return match_a || match_b;
+}
+
 
 
 pueo::RawHeader * pueo::Dataset::header(bool force_load) 
