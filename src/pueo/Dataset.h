@@ -252,11 +252,11 @@ namespace pueo
       int getCurrRun() { return currRun; };
 
       UInt_t gimmeL2ReadoutTime();
-      UInt_t gimmeL2Mask(int inentry=0);
-      UInt_t gimmeL2MaskAtTimes();
+      UInt_t gimmeL2Mask();
       UInt_t gimmeTriggerCount(int inentry=0);
       UInt_t gimmeCurrentSecond (int inentry=0);
-
+      UInt_t gimmePhisExlcudeBits();
+      bool IsThisPhiPolExcluded(int whichPhi, int whichPol);
 
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */
       bool maybeInvertPolarity(UInt_t eventNumber);

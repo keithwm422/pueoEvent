@@ -261,12 +261,7 @@ UInt_t pueo::Dataset::gimmeL2ReadoutTime(){
   return fDaqH->l2_readout_time;
 }
 
-UInt_t pueo::Dataset::gimmeL2Mask(int inentry){
-  fDaqHskTree->GetEntry(inentry);
-  return fDaqH->l2_enable_mask;
-}
-
-UInt_t pueo::Dataset::gimmeL2MaskAtTimes(){
+UInt_t pueo::Dataset::gimmeL2Mask(){
   return fDaqH->l2_enable_mask;
 }
 
@@ -278,6 +273,21 @@ UInt_t pueo::Dataset::gimmeTriggerCount(int inentry){
 UInt_t pueo::Dataset::gimmeCurrentSecond(int inentry){
   fDaqHskTree->GetEntry(inentry);
   return fDaqH->current_second;
+}
+
+// this function returns a Uint_t where each of the 24 bits (in order of LSB meaning L2 -> 0/H which Is HPol L2 = 0) being 0 means that phi sector was not excluded from the trigger (or "masked") because of high trigger rate, and a 1 meaning it was excluded and waveforms from the channels that participate in forming those L2s should be neglected when doing analysis such as map recon.
+UInt_t pueo::Dataset::gimmePhisExlcudeBits(){
+  UInt_t theOrigL2Mask = fDaqH->l2_enable_mask;
+  return 0x00FFFFFF & theOrigL2Mask;
+}
+
+// this function returns false if you send it values out of the bounds or if the 
+bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol){
+  if(whichPhi>11 || whichPhi<0) return false;
+  if(whichPol!=0 && whichPol!=1) return false;
+  UInt_t thisphiexclude = gimmePhisExlcudeBits();
+  int bit_position = (whichPol*12) + whichPhi;
+  return ( (uint32_t ) (thisphiexclude) >> bit_position) & 1;
 }
 
 
