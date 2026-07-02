@@ -33,6 +33,7 @@
 #include "pueo/Dataset.h"
 #include "pueo/UsefulEvent.h"
 #include "pueo/RawHeader.h"
+#include "pueo/DaqHsk.h"
 #include "pueo/Nav.h"
 #include "pueo/TruthEvent.h" 
 #include "pueo/Version.h" 
@@ -167,6 +168,7 @@ pueo::Dataset::Dataset(int run,  DataDirectory version, bool decimated, Blinding
   fHeadTree(0), fHeader(0), 
   fEventTree(0), fRawEvent(0), fUsefulEvent(0), 
   fGpsTree(0), fGps(0), 
+  fDaqHskTree(0),fDaqH(0),
   fTruthTree(0), fTruth(0), 
   fCutList(0), fRandy()
 {
@@ -229,6 +231,54 @@ pueo::nav::Attitude * pueo::Dataset::gps(bool force_load)
   return fGps;
 }
 
+// Keth's daq hsk playground for Scrandis
+pueo::daqhsk::DaqHsk * pueo::Dataset::daqh(bool force_load)
+{
+
+  if (fHaveDaqHskEvent) // something else?
+  {
+    if (fDaqHskTree->GetReadEntry() != fWantedEntry || force_load) 
+    {
+      fDaqHskTree->GetEntry(fWantedEntry);
+    }
+  }
+  else
+  {
+    if (fGpsDirty || force_load) // what is dirty and havegpsevent
+    {
+      //try one that matches realtime
+      //TODO use the correct values once they're available
+      int daqhEntry = fDaqHskTree->GetEntryNumberWithBestIndex(header()->corrected_trigger_time.GetSec(), header()->corrected_trigger_time.GetNanoSec());
+      fDaqHskTree->GetEntry(daqhEntry);
+      fGpsDirty = false;
+    }
+  }
+
+  return fDaqH;
+}
+
+UInt_t pueo::Dataset::gimmeL2ReadoutTime(){
+  return fDaqH->l2_readout_time;
+}
+
+UInt_t pueo::Dataset::gimmeL2Mask(int inentry){
+  fDaqHskTree->GetEntry(inentry);
+  return fDaqH->l2_enable_mask;
+}
+
+UInt_t pueo::Dataset::gimmeL2MaskAtTimes(){
+  return fDaqH->l2_enable_mask;
+}
+
+UInt_t pueo::Dataset::gimmeTriggerCount(int inentry){
+  fDaqHskTree->GetEntry(inentry);
+  return fDaqH->trigger_count;
+}
+
+UInt_t pueo::Dataset::gimmeCurrentSecond(int inentry){
+  fDaqHskTree->GetEntry(inentry);
+  return fDaqH->current_second;
+}
 
 
 pueo::RawHeader * pueo::Dataset::header(bool force_load) 
@@ -594,6 +644,18 @@ bool  pueo::Dataset::loadRun(int run, DataDirectory dir, bool dec)
 
   if (fGpsTree) fGpsTree->SetBranchAddress("attitude",&fGps); 
 
+  // try to load daq hsk (no simulation yet)
+  fname = TString::Format("%s/attitude.root", data_dir);
+  if(TFile * f = openIfAnyExist(1, fname.Data())){
+    fprintf(stdout,"Loading daqhsk file for run %d, using global file\n",run);
+    fname = TString::Format("%s/daqhsk.root", data_dir);
+    f = TFile::Open(fname);
+    filesToClose.push_back(f);
+    fDaqHskTree = (TTree*) f->Get("daqhskTree"); 
+    if (!fDaqHskTree->GetTreeIndex()) fDaqHskTree->BuildIndex("l2_readout_time","l2_readout_timeNsecs");
+    fHaveDaqHskEvent = false;
+  }
+  if (fDaqHskTree) fDaqHskTree->SetBranchAddress("daqhsk",&fDaqH);
 
   //try to load useful event file 
 

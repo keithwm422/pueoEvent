@@ -33,7 +33,12 @@ namespace pueo
   class UsefulEvent;
   class RawEvent;
   class TruthEvent;
-
+  namespace daqhsk
+  {
+    class Beam;
+    class Surf;
+    class DaqHsk;
+  }
   class Dataset
   {
     public:
@@ -227,6 +232,8 @@ namespace pueo
        * been loaded */
       nav::Attitude * gps(bool force_reload = false);
 
+      daqhsk::DaqHsk * daqh(bool force_reload = false);
+
       /** Loads the Header. This will preferentially be from the timedHeader tree
        * but will fall back to the less glamorous one if need be. If the
        * decimated run was loaded, the decimated header tree is used.  Optionally
@@ -243,6 +250,13 @@ namespace pueo
 
       /** Want to see what run you previously loaded?  Look no further */
       int getCurrRun() { return currRun; };
+
+      UInt_t gimmeL2ReadoutTime();
+      UInt_t gimmeL2Mask(int inentry=0);
+      UInt_t gimmeL2MaskAtTimes();
+      UInt_t gimmeTriggerCount(int inentry=0);
+      UInt_t gimmeCurrentSecond (int inentry=0);
+
 
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */
       bool maybeInvertPolarity(UInt_t eventNumber);
@@ -270,6 +284,8 @@ namespace pueo
       Bool_t fGpsDirty;  // used only with gpsFile data
       TTree* fGpsTree;
       nav::Attitude * fGps;
+      TTree* fDaqHskTree;
+      daqhsk::DaqHsk * fDaqH;
       TTree * fTruthTree; 
       TruthEvent * fTruth;
 
@@ -280,6 +296,7 @@ namespace pueo
       Long64_t fWantedEntry;
       Long64_t fDecimatedEntry;
       Bool_t fHaveGpsEvent;
+      Bool_t fHaveDaqHskEvent;
       Bool_t fHaveUsefulFile;
       std::vector<TFile *> filesToClose;
       bool fDecimated;
