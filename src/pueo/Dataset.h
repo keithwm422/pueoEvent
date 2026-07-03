@@ -270,6 +270,35 @@ namespace pueo
 
       static int getRunAtTime(double t);
       static void setVerboseOutput(bool v);
+    private: 
+      static constexpr int phi_to_bits[25][2] = {
+        { -1, -1 }, // Index 0 (Unused placeholder)
+        {11, 0},    // phi 1  (Bit 11, Bit 0)
+        {11, 0},    // phi 2  (Bit 11, Bit 0)
+        {0, 1},     // phi 3  (Bit 0, Bit 1)
+        {0, 1},     // phi 4  (Bit 0, Bit 1)
+        {1, 2},     // phi 5  ...
+        {1, 2},     // phi 6
+        {2, 3},     // phi 7
+        {2, 3},     // phi 8
+        {3, 4},     // phi 9
+        {3, 4},     // phi 10
+        {4, 5},     // phi 11
+        {4, 5},     // phi 12
+        {5, 6},     // phi 13
+        {5, 6},     // phi 14
+        {6, 7},     // phi 15
+        {6, 7},     // phi 16
+        {7, 8},     // phi 17
+        {7, 8},     // phi 18
+        {8, 9},     // phi 19
+        {8, 9},     // phi 20
+        {9, 10},    // phi 21
+        {9, 10},    // phi 22
+        {10, 11},   // phi 23 (Bit 10, Bit 11)
+        {10, 11}    // phi 24 (Bit 10, Bit 11)
+      };
+
 
     protected:
       void unloadRun();
