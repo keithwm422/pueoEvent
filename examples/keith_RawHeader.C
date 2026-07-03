@@ -4,7 +4,7 @@
 // load libPueoEvent
 R__LOAD_LIBRARY(libpueoEvent) 
 
-void keith_RawHeader(int run = 1201, int entry_in  = 0) 
+void keith_RawHeader(int run = 1201, int entry_in  = 0, int whichbit_in=0) 
 {
 
   // create a dataset using MC data
@@ -16,21 +16,28 @@ void keith_RawHeader(int run = 1201, int entry_in  = 0)
   //int thisentry=entry;
   bool timetostop =false;
   int entry=entry_in;
-  TH2D * gr = new TH2D("L2 masked b/c rate high","L2 Masked (rate too high); pol;phi",2,-0.5,1.5,12,-0.5,11.5);
+  int whichbit = whichbit_in;
+  TH2D * gr = new TH2D("L2tiggermap","L2 tigger to phi pol map; pol;phi",2,-0.5,1.5,24,0.5,24.5);
+  UInt_t thistest =0x00;
+  thistest |= (1U << whichbit);;
+  TString new_title = Form("L2 tigger to phi pol map Bit %d;pol;phi", whichbit);
+  gr->SetTitle(new_title);
+
   while(entry < totalevents){
     d.nextEvent();
     entry = d.current();
     d.header();
-    if((int) (d.gimmeHeaderL2())!=0){
-        cout << "found one: " << (int) d.gimmeHeaderL2() << endl;
-    }
-    for(int phi=0; phi<12;phi++){
+    //if((int) (d.gimmeHeaderL2())!=0){
+     //   cout << "found one: " << (int) d.gimmeHeaderL2() << endl;
+    //}
+    for(int phi=1; phi<25;phi++){
       for(int pol=0;pol<2;pol++){
-        //if(d.IsThisPhiPolExcluded(phi,pol)) {
+        if(d.IsPolPhiTriggered(pol,phi,true,thistest)) {
           //cout << phi <<"," << pol<<  " for readout time " << d.gimmeL2ReadoutTime() << endl;
           //timetostop=true;
-        //  gr->Fill(pol,phi);
-        //}
+          gr->Fill(pol,phi);
+        }
+        
       }
     }
     entry++;
@@ -43,6 +50,8 @@ void keith_RawHeader(int run = 1201, int entry_in  = 0)
   //gPad->SetLogz();
   //cc->Update();
   //cc->Modified();
-  cc->SaveAs("test.pdf");
+  TString file_name = Form("bit_map_check_%d.png", whichbit);
+  cc->SaveAs(file_name);
+  //cc->SaveAs("test.pdf");
   cout << "done" << endl;
 }
