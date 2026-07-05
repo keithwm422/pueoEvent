@@ -282,26 +282,28 @@ UInt_t pueo::Dataset::gimmePhisExlcudeBits(){
 }
 
 // this function returns false if you send it values out of the bounds or if the 
-bool pueo::Dataset::IsL2PhiMasked(int whichPhi, int whichPol){
+bool pueo::Dataset::IsL2PhiMasked(int whichPhi, int whichPol, bool override_test,UInt_t test){
   if(whichPhi>11 || whichPhi<0) return false;
   if(whichPol!=0 && whichPol!=1) return false;
-  UInt_t thisphiexclude = gimmePhisExlcudeBits();
   int bit_position = (whichPol*12) + whichPhi;
-  return ( (uint32_t ) (thisphiexclude) >> bit_position) & 1;
+  if(!override_test){
+    UInt_t thisphiexclude = gimmePhisExlcudeBits();
+    return ( (UInt_t) (thisphiexclude) >> bit_position) & 1;
+  }
+  else return ( (UInt_t) (test) >> bit_position) & 1;
 }
-
 /**
  * Wrapper function that accepts a wide phi sector (1-24) and maps it 
  * to the underlying overlapping bit mask structure.
  */
-bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol) {
+bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol,bool override_test,UInt_t test) {
     if (whichPhi < 1 || whichPhi > 24 || whichPol<0 || whichPol>1) {
       return false;
     }
     int bit_a = phi_to_bits[whichPhi][0];
     int bit_b = phi_to_bits[whichPhi][1];
-    bool match_a = IsL2PhiMasked(bit_a,whichPol);
-    bool match_b = IsL2PhiMasked(bit_b,whichPol);
+    bool match_a = IsL2PhiMasked(bit_a,whichPol, override_test,test);
+    bool match_b = IsL2PhiMasked(bit_b,whichPol, override_test,test);
     return match_a || match_b;
 }
 
