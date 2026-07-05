@@ -251,13 +251,18 @@ namespace pueo
       /** Want to see what run you previously loaded?  Look no further */
       int getCurrRun() { return currRun; };
 
+      //DAQHSK L2 excluded/masked bit crap
       UInt_t gimmeL2ReadoutTime();
       UInt_t gimmeL2Mask();
       UInt_t gimmeTriggerCount(int inentry=0);
       UInt_t gimmeCurrentSecond (int inentry=0);
       UInt_t gimmePhisExlcudeBits();
-      bool IsL2PhiMasked(int whichPhi, int whichPol);
-      bool IsThisPhiPolExcluded(int whichPhi, int whichPol);
+      bool IsL2PhiMasked(int whichPhi, int whichPol, bool override_test=false,UInt_t test=0);
+      bool IsThisPhiPolExcluded(int whichPhi, int whichPol, bool override_test=false,UInt_t test=0);
+      //RawHeader L2 triggered bit crap
+      UInt_t gimmeHeaderL2();
+      bool IsL2PhiBitSet(int pol, int L2bit, bool override_test=false,UInt_t test=0);
+      bool IsPolPhiTriggered(int pol, int phi, bool override_test=false, UInt_t test=0);
 
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */
       bool maybeInvertPolarity(UInt_t eventNumber);
@@ -299,6 +304,40 @@ namespace pueo
         {10, 11}    // phi 24 (Bit 10, Bit 11)
       };
 
+
+    private: 
+      // Lookup table for Pol 0 (Phis 1-24 -> Local Bits 0-11)
+      static constexpr int pol0_to_bits[25][2] = {
+        { -1, -1 }, // Index 0 (Unused)
+        {5, 11}, {5, 11}, // phis 1, 2
+        {4, 5},  {4, 5},  // phis 3, 4
+        {3, 4},  {3, 4},  // phis 5, 6
+        {2, 3},  {2, 3},  // phis 7, 8
+        {1, 2},  {1, 2},  // phis 9, 10
+        {0, 1},  {0, 1},  // phis 11, 12
+        {6, 0},  {6, 0},  // phis 13, 14
+        {7, 6},  {7, 6},  // phis 15, 16
+        {8, 7},  {8, 7},  // phis 17, 18
+        {9, 8},  {9, 8},  // phis 19, 20
+        {10, 9}, {10, 9}, // phis 21, 22
+        {11, 10},{11, 10} // phis 23, 24
+      };
+      // Lookup table for Pol 1 (phis 1-24 -> Global Bits 12-23)
+      static constexpr int pol1_to_bits[25][2] = {
+        { -1, -1 },  // Index 0 (Unused)
+        {23, 17}, {23, 17}, // phis 1, 2
+        {22, 23}, {22, 23}, // phis 3, 4
+        {21, 22}, {21, 22}, // phis 5, 6
+        {20, 21}, {20, 21}, // phis 7, 8
+        {19, 20}, {19, 20}, // phis 9, 10
+        {18, 19}, {18, 19}, // phis 11, 12
+        {12, 18}, {12, 18}, // phis 13, 14
+        {13, 12}, {13, 12}, // phis 15, 16
+        {14, 13}, {14, 13}, // phis 17, 18
+        {15, 14}, {15, 14}, // phis 19, 20
+        {16, 15}, {16, 15}, // phis 21, 22
+        {17, 16}, {17, 16}  // phis 23, 24
+      };
 
     protected:
       void unloadRun();

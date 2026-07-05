@@ -423,6 +423,37 @@ Bool_t pueo::Dataset::maybeInvertPolarity(UInt_t eventNumber){
   return false;
 }
 
+UInt_t pueo::Dataset::gimmeHeaderL2(){
+  return fHeader->L2Mask;
+}
+
+
+bool pueo::Dataset::IsL2PhiBitSet(int pol, int L2bit, bool override_test,UInt_t test){
+  if (L2bit < 0 || L2bit > 11) return false;
+  if(!override_test){ 
+    UInt_t thismask = gimmeHeaderL2();
+    return ( thismask >> ((pol * 12) + L2bit)) & 1;
+  }
+  else return ( test >> ((pol * 12) + L2bit)) & 1;
+}
+
+bool pueo::Dataset::IsPolPhiTriggered(int pol, int phi, bool override_test, UInt_t test){
+  if (phi < 1 || phi > 24) return false;
+  int bit_a = -1;
+  int bit_b = -1;
+  if (pol == 0) {
+    bit_a = pol0_to_bits[phi][0];
+    bit_b = pol0_to_bits[phi][1];
+  }
+  else if (pol == 1) {
+    // Subtracting 12 normalizes the global bits (12-23) down to local bits (0-11)
+    bit_a = pol1_to_bits[phi][0] - 12;
+    bit_b = pol1_to_bits[phi][1] - 12;
+  }
+  else return false; // Invalid pol
+  return IsL2PhiBitSet(pol, bit_a,override_test,test) || IsL2PhiBitSet(pol, bit_b,override_test,test);
+}
+
 int pueo::Dataset::getEntry(int entryNumber)
 {
 
