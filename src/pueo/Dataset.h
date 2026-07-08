@@ -251,14 +251,21 @@ namespace pueo
       /** Want to see what run you previously loaded?  Look no further */
       int getCurrRun() { return currRun; };
 
+      uint8_t gimmeSurfChID(int whichsurf);
+      uint8_t gimmeL1Surf(int whichsurf);
+      ULong_t gimmeRawEventNum();
+      Int_t gimmeRawRunNum();
+
       //DAQHSK L2 excluded/masked bit crap
       UInt_t gimmeL2ReadoutTime();
       UInt_t gimmeL2Mask();
       UInt_t gimmeTriggerCount(int inentry=0);
       UInt_t gimmeCurrentSecond (int inentry=0);
       UInt_t gimmePhisExlcudeBits();
+      int GetActualDiskBit(int pol, int expected_local_bit);
       bool IsL2PhiMasked(int whichPhi, int whichPol, bool override_test=false,UInt_t test=0);
       bool IsThisPhiPolExcluded(int whichPhi, int whichPol, bool override_test=false,UInt_t test=0);
+
       //RawHeader L2 triggered bit crap
       UInt_t gimmeHeaderL2();
       bool IsL2PhiBitSet(int pol, int L2bit, bool override_test=false,UInt_t test=0);
@@ -276,6 +283,7 @@ namespace pueo
       static int getRunAtTime(double t);
       static void setVerboseOutput(bool v);
     private: 
+      // this table is what is used for determining if the masking of a phi sector occurred for a given daqhsk time if their L2 trigger rates were too high. Don't confuse this with the table for determining which phi sectors participated in the L2 trigger coincidence which is not a daqhsk thing but is per event RawHeader.
       static constexpr int phi_to_bits[25][2] = {
         { -1, -1 }, // Index 0 (Unused placeholder)
         {11, 0},    // phi 1  (Bit 11, Bit 0)
@@ -303,9 +311,7 @@ namespace pueo
         {10, 11},   // phi 23 (Bit 10, Bit 11)
         {10, 11}    // phi 24 (Bit 10, Bit 11)
       };
-
-
-    private: 
+      // these two tables are what we expected the L2 trigger bit mapping to be but not what was actually coded up and written to disk. It is actually shifted for HDAQ (pol=0) and VDAQ (pol=1) by 1 bit for the pairs of phi sectors, wrapping around with the shift. 
       // Lookup table for Pol 0 (Phis 1-24 -> Local Bits 0-11)
       static constexpr int pol0_to_bits[25][2] = {
         { -1, -1 }, // Index 0 (Unused)
@@ -338,7 +344,6 @@ namespace pueo
         {16, 15}, {16, 15}, // phis 21, 22
         {17, 16}, {17, 16}  // phis 23, 24
       };
-
     protected:
       void unloadRun();
       TTree * fHeadTree;

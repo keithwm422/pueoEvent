@@ -56,6 +56,8 @@ namespace pueo
        for (size_t i = 0; i < PUEO_NCHAN; i++)
        {
          std::copy(raw->wfs[i].data, raw->wfs[i].data+pueo::k::NUM_SAMPLES, data[i].begin());
+         surf_words[i] = raw->wfs[i].surf_word;
+         channels[i] = raw->wfs[i].channel_id;
        }
      }
 #endif
@@ -65,8 +67,10 @@ namespace pueo
      Int_t runNumber = 0;   ///< Run number
 
      std::array<std::array<Short_t, pueo::k::NUM_SAMPLES>, pueo::k::NUM_DIGITIZED_CHANNELS> data;
+     std::array<uint8_t,pueo::k::NUM_DIGITIZED_CHANNELS> surf_words;
+     std::array<uint8_t,pueo::k::NUM_DIGITIZED_CHANNELS> channels;
 
-    ClassDefNV(RawEvent,3);
+    ClassDefNV(RawEvent,5);
   };
 
 }

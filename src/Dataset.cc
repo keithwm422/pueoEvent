@@ -257,6 +257,18 @@ pueo::daqhsk::DaqHsk * pueo::Dataset::daqh(bool force_load)
   return fDaqH;
 }
 
+uint8_t pueo::Dataset::gimmeSurfChID(int whichsurf){
+  return fRawEvent->channels[whichsurf];
+}
+uint8_t pueo::Dataset::gimmeL1Surf(int whichsurf){
+  return fRawEvent->surf_words[whichsurf];
+}
+ULong_t pueo::Dataset::gimmeRawEventNum(){
+  return fRawEvent->eventNumber;
+}
+Int_t pueo::Dataset::gimmeRawRunNum(){
+  return fRawEvent->runNumber;
+}
 UInt_t pueo::Dataset::gimmeL2ReadoutTime(){
   return fDaqH->l2_readout_time;
 }
