@@ -275,10 +275,10 @@ UInt_t pueo::Dataset::gimmeCurrentSecond(int inentry){
   return fDaqH->current_second;
 }
 
-// this function returns a Uint_t where each of the 24 bits (in order of LSB meaning L2 -> 0/H which Is HPol L2 = 0) being 0 means that phi sector was not excluded from the trigger (or "masked") because of high trigger rate, and a 1 meaning it was excluded and waveforms from the channels that participate in forming those L2s should be neglected when doing analysis such as map recon.
+// This function returns a UInt_t representing the lower 24 bits of the L2 mask, but with the logic inverted: a 1 means the phi sector was NOT excluded (it is enabled), and a 0 means it was excluded (masked out due to high trigger rate) and waveforms from channels participating in those L2s should be neglected during analysis like map recon.
 UInt_t pueo::Dataset::gimmePhisExlcudeBits(){
   UInt_t theOrigL2Mask = fDaqH->l2_enable_mask;
-  return 0x00FFFFFF & theOrigL2Mask;
+  return 0x00FFFFFF & (~theOrigL2Mask);
 }
 
 // this function returns false if you send it values out of the bounds or if the 
