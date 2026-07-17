@@ -706,7 +706,7 @@ bool  pueo::Dataset::loadRun(int run, DataDirectory dir, bool dec)
   // try to load daq hsk (no simulation yet)
   fname = TString::Format("%s/attitude.root", data_dir);
   if(TFile * f = openIfAnyExist(1, fname.Data())){
-    fprintf(stdout,"Loading daqhsk file for run %d, using global file\n",run);
+    if(verbose) fprintf(stdout,"Loading daqhsk file for run %d, using global file\n",run);
     fname = TString::Format("%s/daqhsk.root", data_dir);
     f = TFile::Open(fname);
     filesToClose.push_back(f);
