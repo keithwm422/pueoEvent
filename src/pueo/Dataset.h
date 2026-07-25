@@ -17,6 +17,7 @@
 #include "pueo/Conventions.h"
 #include "TString.h"
 #include "TRandom3.h"
+#include <iomanip> // Required for std::setw and std::setfill
 
 class TTree;
 class TFile;
@@ -252,6 +253,10 @@ namespace pueo
       int getCurrRun() { return currRun; };
 
       //DAQHSK L2 excluded/masked bit crap
+      UInt_t  gimmeL2Scalers(int i);
+      double gimmeL2ScalerAbsTimeInSeconds();
+      double gimmeL2ScalerRelTimeInSeconds(double zeroTime);
+      void dumpL2ReadoutTime();
       UInt_t gimmeL2ReadoutTime();
       UInt_t gimmeL2Mask();
       UInt_t gimmeTriggerCount(int inentry=0);
@@ -263,6 +268,7 @@ namespace pueo
       UInt_t gimmeHeaderL2();
       bool IsL2PhiBitSet(int pol, int L2bit, bool override_test=false,UInt_t test=0);
       bool IsPolPhiTriggered(int pol, int phi, bool override_test=false, UInt_t test=0);
+      void dumpHeaderTimes();
 
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */
       bool maybeInvertPolarity(UInt_t eventNumber);

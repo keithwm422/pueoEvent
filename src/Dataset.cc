@@ -257,6 +257,85 @@ pueo::daqhsk::DaqHsk * pueo::Dataset::daqh(bool force_load)
   return fDaqH;
 }
 
+UInt_t  pueo::Dataset::gimmeL2Scalers(int i){
+  if (i<12 && i>-1) return fDaqH->H_scalers[i];
+  else if(i>11 && i<24) return fDaqH->V_scalers[i-12];
+  else return 0;
+  //return thisvec;
+}
+
+double pueo::Dataset::gimmeL2ScalerAbsTimeInSeconds(){
+  return static_cast<double>(fDaqH->scaler_readout_time) + (static_cast<double>(fDaqH->scaler_readout_timeNsecs) * 1e-9);
+}
+
+double pueo::Dataset::gimmeL2ScalerRelTimeInSeconds(double zeroTime){
+  double currentTime=gimmeL2ScalerAbsTimeInSeconds();
+  return currentTime - zeroTime;
+}
+
+void pueo::Dataset::dumpL2ReadoutTime(){
+if (fDaqH) {
+    // Save current stream formatting state
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    std::cout << "==================== DAQ TIMES =====================" << "\n";
+
+    // Combined L2 Readout Time
+    std::cout << "L2 Readout Time       : " 
+              << fDaqH->l2_readout_time << "." 
+              << std::setfill('0') << std::setw(9) << fDaqH->l2_readout_timeNsecs 
+              << " s (Raw Unix Epoch)\n";
+
+    // Restore default formatting
+    std::cout.copyfmt(state);
+
+    std::cout << "====================================================" << std::endl;
+}
+// Assuming fDaqH is a valid pointer...
+if (fDaqH) {
+    // Save current stream formatting state
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    std::cout << "================== SCALER TIMES ====================" << "\n";
+
+    // Combined Scaler Readout Time
+    std::cout << "Scaler Readout Time   : " 
+              << fDaqH->scaler_readout_time << "." 
+              << std::setfill('0') << std::setw(9) << fDaqH->scaler_readout_timeNsecs 
+              << " s (Raw Unix Epoch)\n";
+
+    // Restore default formatting
+    std::cout.copyfmt(state);
+
+    std::cout << "====================================================" << std::endl;
+}
+if (fDaqH) {
+    std::cout << "=================== SCALER VALUES ==================" << "\n";
+    
+    // Print Table Header
+    // Adjust the widths (e.g., 8, 15, 15) to fit your console preferences
+    std::cout << std::left 
+              << std::setw(8)  << "Index" 
+              << std::setw(15) << "H-Scalers" 
+              << std::setw(15) << "V-Scalers" << "\n";
+              
+    std::cout << "----------------------------------------------------" << "\n";
+
+    // Loop through the 12 entries
+    for (size_t i = 0; i < 12; ++i) {
+        std::cout << std::left 
+                  << std::setw(8)  << i 
+                  << std::setw(15) << (int) fDaqH->H_scalers[i] 
+                  << std::setw(15) << (int) fDaqH->V_scalers[i] << "\n";
+    }
+
+    std::cout << "====================================================" << std::endl;
+}
+
+}
+
 UInt_t pueo::Dataset::gimmeL2ReadoutTime(){
   return fDaqH->l2_readout_time;
 }
@@ -454,6 +533,40 @@ bool pueo::Dataset::IsPolPhiTriggered(int pol, int phi, bool override_test, UInt
   }
   else return false; // Invalid pol
   return IsL2PhiBitSet(pol, bit_a,override_test,test) || IsL2PhiBitSet(pol, bit_b,override_test,test);
+}
+
+void pueo::Dataset::dumpHeaderTimes(){
+// Assuming fHeader is a valid pointer to your custom class...
+if (fHeader) {
+    // Save current stream formatting state
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    std::cout << "=================== HEADER TIMES ===================" << "\n";
+
+    // 1. Raw Readout Time (Combining readoutTime and readoutTimeNs)
+    std::cout << "Raw Readout Time      : " 
+              << fHeader->readoutTime << "." 
+              << std::setfill('0') << std::setw(9) << fHeader->readoutTimeNs 
+              << " s (Raw Unix Epoch)\n";
+
+    // Restore default formatting so we don't accidentally pad other numbers
+    std::cout.copyfmt(state);
+
+    // 2. Corrected Readout Time
+    std::cout << "Corrected Readout Time: " 
+              << fHeader->corrected_readout_time.AsString("s") << " UTC "
+              << "(or " << std::fixed << std::setprecision(9) 
+              << fHeader->corrected_readout_time.AsDouble() << " s)\n";
+
+    // 3. Corrected Trigger Time
+    std::cout << "Corrected Trigger Time: " 
+              << fHeader->corrected_trigger_time.AsString("s") << " UTC "
+              << "(or " << std::fixed << std::setprecision(9) 
+              << fHeader->corrected_trigger_time.AsDouble() << " s)\n";
+
+    std::cout << "====================================================" << std::endl;
+}
 }
 
 int pueo::Dataset::getEntry(int entryNumber)
