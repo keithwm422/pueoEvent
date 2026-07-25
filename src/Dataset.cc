@@ -33,6 +33,7 @@
 #include "pueo/Dataset.h"
 #include "pueo/UsefulEvent.h"
 #include "pueo/RawHeader.h"
+#include "pueo/DaqHsk.h"
 #include "pueo/Nav.h"
 #include "pueo/TruthEvent.h" 
 #include "pueo/Version.h" 
@@ -167,6 +168,7 @@ pueo::Dataset::Dataset(int run,  DataDirectory version, bool decimated, Blinding
   fHeadTree(0), fHeader(0), 
   fEventTree(0), fRawEvent(0), fUsefulEvent(0), 
   fGpsTree(0), fGps(0), 
+  fDaqHskTree(0),fDaqH(0),
   fTruthTree(0), fTruth(0), 
   fCutList(0), fRandy()
 {
@@ -227,6 +229,161 @@ pueo::nav::Attitude * pueo::Dataset::gps(bool force_load)
   }
 
   return fGps;
+}
+
+// Keth's daq hsk playground for Scrandis
+pueo::daqhsk::DaqHsk * pueo::Dataset::daqh(bool force_load)
+{
+
+  if (fHaveDaqHskEvent) // something else?
+  {
+    if (fDaqHskTree->GetReadEntry() != fWantedEntry || force_load) 
+    {
+      fDaqHskTree->GetEntry(fWantedEntry);
+    }
+  }
+  else
+  {
+    if (fGpsDirty || force_load) // what is dirty and havegpsevent
+    {
+      //try one that matches realtime
+      //TODO use the correct values once they're available
+      int daqhEntry = fDaqHskTree->GetEntryNumberWithBestIndex(header()->corrected_trigger_time.GetSec(), header()->corrected_trigger_time.GetNanoSec());
+      fDaqHskTree->GetEntry(daqhEntry);
+      fGpsDirty = false;
+    }
+  }
+
+  return fDaqH;
+}
+
+UInt_t  pueo::Dataset::gimmeL2Scalers(int i){
+  if (i<12 && i>-1) return fDaqH->H_scalers[i];
+  else if(i>11 && i<24) return fDaqH->V_scalers[i-12];
+  else return 0;
+  //return thisvec;
+}
+
+double pueo::Dataset::gimmeL2ScalerAbsTimeInSeconds(){
+  return static_cast<double>(fDaqH->scaler_readout_time) + (static_cast<double>(fDaqH->scaler_readout_timeNsecs) * 1e-9);
+}
+
+double pueo::Dataset::gimmeL2ScalerRelTimeInSeconds(double zeroTime){
+  double currentTime=gimmeL2ScalerAbsTimeInSeconds();
+  return currentTime - zeroTime;
+}
+
+void pueo::Dataset::dumpL2ReadoutTime(){
+if (fDaqH) {
+    // Save current stream formatting state
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    std::cout << "==================== DAQ TIMES =====================" << "\n";
+
+    // Combined L2 Readout Time
+    std::cout << "L2 Readout Time       : " 
+              << fDaqH->l2_readout_time << "." 
+              << std::setfill('0') << std::setw(9) << fDaqH->l2_readout_timeNsecs 
+              << " s (Raw Unix Epoch)\n";
+
+    // Restore default formatting
+    std::cout.copyfmt(state);
+
+    std::cout << "====================================================" << std::endl;
+}
+// Assuming fDaqH is a valid pointer...
+if (fDaqH) {
+    // Save current stream formatting state
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    std::cout << "================== SCALER TIMES ====================" << "\n";
+
+    // Combined Scaler Readout Time
+    std::cout << "Scaler Readout Time   : " 
+              << fDaqH->scaler_readout_time << "." 
+              << std::setfill('0') << std::setw(9) << fDaqH->scaler_readout_timeNsecs 
+              << " s (Raw Unix Epoch)\n";
+
+    // Restore default formatting
+    std::cout.copyfmt(state);
+
+    std::cout << "====================================================" << std::endl;
+}
+if (fDaqH) {
+    std::cout << "=================== SCALER VALUES ==================" << "\n";
+    
+    // Print Table Header
+    // Adjust the widths (e.g., 8, 15, 15) to fit your console preferences
+    std::cout << std::left 
+              << std::setw(8)  << "Index" 
+              << std::setw(15) << "H-Scalers" 
+              << std::setw(15) << "V-Scalers" << "\n";
+              
+    std::cout << "----------------------------------------------------" << "\n";
+
+    // Loop through the 12 entries
+    for (size_t i = 0; i < 12; ++i) {
+        std::cout << std::left 
+                  << std::setw(8)  << i 
+                  << std::setw(15) << (int) fDaqH->H_scalers[i] 
+                  << std::setw(15) << (int) fDaqH->V_scalers[i] << "\n";
+    }
+
+    std::cout << "====================================================" << std::endl;
+}
+
+}
+
+UInt_t pueo::Dataset::gimmeL2ReadoutTime(){
+  return fDaqH->l2_readout_time;
+}
+
+UInt_t pueo::Dataset::gimmeL2Mask(){
+  return fDaqH->l2_enable_mask;
+}
+
+UInt_t pueo::Dataset::gimmeTriggerCount(int inentry){
+  fDaqHskTree->GetEntry(inentry);
+  return fDaqH->trigger_count;
+}
+
+UInt_t pueo::Dataset::gimmeCurrentSecond(int inentry){
+  fDaqHskTree->GetEntry(inentry);
+  return fDaqH->current_second;
+}
+
+// This function returns a UInt_t representing the lower 24 bits of the L2 mask, but with the logic inverted: a 1 means the phi sector was NOT excluded (it is enabled), and a 0 means it was excluded (masked out due to high trigger rate) and waveforms from channels participating in those L2s should be neglected during analysis like map recon.
+UInt_t pueo::Dataset::gimmePhisExlcudeBits(){
+  UInt_t theOrigL2Mask = fDaqH->l2_enable_mask;
+  return 0x00FFFFFF & (~theOrigL2Mask);
+}
+
+// this function returns false if you send it values out of the bounds or if the 
+bool pueo::Dataset::IsL2PhiMasked(int whichPhi, int whichPol, bool override_test,UInt_t test){
+  if(whichPhi>11 || whichPhi<0) return false;
+  if(whichPol!=0 && whichPol!=1) return false;
+  int bit_position = (whichPol*12) + whichPhi;
+  if(!override_test){
+    UInt_t thisphiexclude = gimmePhisExlcudeBits();
+    return ( (UInt_t) (thisphiexclude) >> bit_position) & 1;
+  }
+  else return ( (UInt_t) (test) >> bit_position) & 1;
+}
+/**
+ * Wrapper function that accepts a wide phi sector (1-24) and maps it 
+ * to the underlying overlapping bit mask structure.
+ */
+bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol,bool override_test,UInt_t test) {
+    if (whichPhi < 1 || whichPhi > 24 || whichPol<0 || whichPol>1) {
+      return false;
+    }
+    int bit_a = phi_to_bits[whichPhi][0];
+    int bit_b = phi_to_bits[whichPhi][1];
+    bool match_a = IsL2PhiMasked(bit_a,whichPol, override_test,test);
+    bool match_b = IsL2PhiMasked(bit_b,whichPol, override_test,test);
+    return match_a || match_b;
 }
 
 
@@ -345,6 +502,71 @@ Bool_t pueo::Dataset::maybeInvertPolarity(UInt_t eventNumber){
     return (aboveZeroFiftyPercentOfTheTime < 0);
   }
   return false;
+}
+
+UInt_t pueo::Dataset::gimmeHeaderL2(){
+  return fHeader->L2Mask;
+}
+
+
+bool pueo::Dataset::IsL2PhiBitSet(int pol, int L2bit, bool override_test,UInt_t test){
+  if (L2bit < 0 || L2bit > 11) return false;
+  if(!override_test){ 
+    UInt_t thismask = gimmeHeaderL2();
+    return ( thismask >> ((pol * 12) + L2bit)) & 1;
+  }
+  else return ( test >> ((pol * 12) + L2bit)) & 1;
+}
+
+bool pueo::Dataset::IsPolPhiTriggered(int pol, int phi, bool override_test, UInt_t test){
+  if (phi < 1 || phi > 24) return false;
+  int bit_a = -1;
+  int bit_b = -1;
+  if (pol == 0) {
+    bit_a = pol0_to_bits[phi][0];
+    bit_b = pol0_to_bits[phi][1];
+  }
+  else if (pol == 1) {
+    // Subtracting 12 normalizes the global bits (12-23) down to local bits (0-11)
+    bit_a = pol1_to_bits[phi][0] - 12;
+    bit_b = pol1_to_bits[phi][1] - 12;
+  }
+  else return false; // Invalid pol
+  return IsL2PhiBitSet(pol, bit_a,override_test,test) || IsL2PhiBitSet(pol, bit_b,override_test,test);
+}
+
+void pueo::Dataset::dumpHeaderTimes(){
+// Assuming fHeader is a valid pointer to your custom class...
+if (fHeader) {
+    // Save current stream formatting state
+    std::ios state(nullptr);
+    state.copyfmt(std::cout);
+
+    std::cout << "=================== HEADER TIMES ===================" << "\n";
+
+    // 1. Raw Readout Time (Combining readoutTime and readoutTimeNs)
+    std::cout << "Raw Readout Time      : " 
+              << fHeader->readoutTime << "." 
+              << std::setfill('0') << std::setw(9) << fHeader->readoutTimeNs 
+              << " s (Raw Unix Epoch)\n";
+
+    // Restore default formatting so we don't accidentally pad other numbers
+    std::cout.copyfmt(state);
+
+    // 2. Corrected Readout Time
+    std::cout << "Corrected Readout Time: " 
+              << fHeader->corrected_readout_time.AsString("s") << " UTC "
+              << "(or " << std::fixed << std::setprecision(9) 
+              << fHeader->corrected_readout_time.AsDouble() << " s)\n";
+
+    // 3. Corrected Trigger Time
+    std::cout << "Corrected Trigger Time: " 
+              << fHeader->corrected_trigger_time.AsString("s") << " UTC "
+              << "(or " << std::fixed << std::setprecision(9) 
+              << fHeader->corrected_trigger_time.AsDouble() << " s)\n";
+
+    std::cout << "====================================================" << std::endl;
+}
 }
 
 int pueo::Dataset::getEntry(int entryNumber)
@@ -594,6 +816,18 @@ bool  pueo::Dataset::loadRun(int run, DataDirectory dir, bool dec)
 
   if (fGpsTree) fGpsTree->SetBranchAddress("attitude",&fGps); 
 
+  // try to load daq hsk (no simulation yet)
+  fname = TString::Format("%s/attitude.root", data_dir);
+  if(TFile * f = openIfAnyExist(1, fname.Data())){
+    if(verbose) fprintf(stdout,"Loading daqhsk file for run %d, using global file\n",run);
+    fname = TString::Format("%s/daqhsk.root", data_dir);
+    f = TFile::Open(fname);
+    filesToClose.push_back(f);
+    fDaqHskTree = (TTree*) f->Get("daqhskTree"); 
+    if (!fDaqHskTree->GetTreeIndex()) fDaqHskTree->BuildIndex("l2_readout_time","l2_readout_timeNsecs");
+    fHaveDaqHskEvent = false;
+  }
+  if (fDaqHskTree) fDaqHskTree->SetBranchAddress("daqhsk",&fDaqH);
 
   //try to load useful event file 
 
