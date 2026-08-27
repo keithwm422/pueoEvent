@@ -254,6 +254,7 @@ namespace pueo
       UInt_t gimmePhisExlcudeBits();
       bool IsL2PhiMasked(int whichPhi, int whichPol, bool override_test=false,UInt_t test=0);
       bool IsThisPhiPolExcluded(int whichPhi, int whichPol, bool override_test=false,UInt_t test=0);
+      UInt_t gimmePhiPolScaler(int whichPhi, int whichPol);
       //RawHeader L2 triggered bit crap
       bool IsL2PhiBitSet(int pol, int L2bit, bool override_test=false,UInt_t test=0);
       bool IsPolPhiTriggered(int pol, int phi, bool override_test=false, UInt_t test=0);

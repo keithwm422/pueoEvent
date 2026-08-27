@@ -290,6 +290,18 @@ bool pueo::Dataset::IsThisPhiPolExcluded(int whichPhi, int whichPol,bool overrid
     return match_a || match_b;
 }
 
+UInt_t pueo::Dataset::gimmePhiPolScaler(int whichPhi, int whichPol) {
+    if (whichPhi < 1 || whichPhi > 24 || whichPol<0 || whichPol>1) {
+      return 0xFFFFFFFF;
+    }
+    int mybit = -1;
+    if(whichPol==0) mybit = phi_to_bits[whichPhi][0];
+    else if(whichPol==1) mybit = phi_to_bits[whichPhi][1];
+    if(whichPol==0 && mybit>=0) return fDaqH->H_scalers[mybit];
+    else if(whichPol==1 && mybit>=0) return fDaqH->V_scalers[mybit];
+    else return 0xFFFFFFFF;
+}
+
 
 
 pueo::RawHeader * pueo::Dataset::header(bool force_load) 
