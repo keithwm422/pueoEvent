@@ -258,7 +258,7 @@ namespace pueo
       //RawHeader L2 triggered bit crap
       bool IsL2PhiBitSet(int pol, int L2bit, bool override_test=false,UInt_t test=0);
       bool IsPolPhiTriggered(int pol, int phi, bool override_test=false, UInt_t test=0);
-
+ 
       /* Wraps the random number generator for polarity inversion so it is derministic regardless of event processing order */
       bool maybeInvertPolarity(UInt_t eventNumber);
 
@@ -270,7 +270,6 @@ namespace pueo
 
       static int getRunAtTime(double t);
       static void setVerboseOutput(bool v);
-    private: 
       static constexpr int phi_to_bits[25][2] = {
         { -1, -1 }, // Index 0 (Unused placeholder)
         {11, 0},    // phi 1  (Bit 11, Bit 0)
@@ -300,7 +299,6 @@ namespace pueo
       };
 
 
-    private: 
       // Lookup table for Pol 0 (Phis 1-24 -> Local Bits 0-11)
       static constexpr int pol0_to_bits[25][2] = {
         { -1, -1 }, // Index 0 (Unused)
@@ -333,7 +331,21 @@ namespace pueo
         {16, 15}, {16, 15}, // phis 21, 22
         {17, 16}, {17, 16}  // phis 23, 24
       };
-
+      // Lookup table, finds the triggered L2 bit and uses it as an index in this array to find the L2 mask bit it shares in terms of global L2 beams? For V, it was added 12 to 0 bits
+      static constexpr int L2Trig_to_L2Maskbits[12][2] = {
+        {5, 6},    // L2Trigger 0 bit is L2 mask H=5 and V=18-12
+        {4, 7},    // L2Trigger 1 bit is L2 mask H=4 and V=19-12
+        {3, 8},    // L2Trigger 2 bit is L2 mask H= and V= 
+        {2, 9},    // L2Trigger 3 bit is L2 mask H= and V= 
+        {1, 10},    // L2Trigger 4 bit is L2 mask H= and V= 
+        {0, 11},    // L2Trigger 5 bit is L2 mask H= and V= 
+        {6, 5},    // L2Trigger 6 bit is L2 mask H= and V= 
+        {7, 4},    // L2Trigger 7 bit is L2 mask H= and V= 
+        {8, 3},    // L2Trigger 8 bit is L2 mask H= and V= 
+        {9, 2},    // L2Trigger 9 bit is L2 mask H= and V= 
+        {10, 1},    // L2Trigger 10 bit is L2 mask H= and V= 
+        {11, 0},    // L2Trigger 11 bit is L2 mask H= and V= 
+      };
     protected:
       void unloadRun();
       TTree * fHeadTree;
