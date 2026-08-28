@@ -35,7 +35,7 @@
 
 #include "TFile.h"
 #include "TTree.h"
-
+#include "TDirectory.h"
 #include <vector>
 #include <iostream>
 #include <dirent.h>
@@ -363,6 +363,7 @@ double pueo::convert::correctReadoutTimes(double input_time)
 
   if (!tried)   // loaded once per process, on first use
   {
+    TDirectory::TContext ctx;   // saves gDirectory now, restores it on scope exit
     tried = true;
     TFile f("readoutTime_corrections.root");
     TTree * t = f.IsZombie() ? nullptr : (TTree*) f.Get("corrections");
@@ -392,6 +393,7 @@ double pueo::convert::correctReadoutTimes(double input_time)
 int pueo::convert::postprocess_daqhsk(const char * infile, const char * outfile, const char * args)
 {
   (void) args;
+  correctReadoutTimes(0.0);            // load the table before opening any file
   if (rename(infile, outfile)) { std::cerr << "postprocess_daqhsk: rename failed" << std::endl; return 1; }
 
   TFile f(outfile, "UPDATE");
@@ -410,7 +412,7 @@ int pueo::convert::postprocess_daqhsk(const char * infile, const char * outfile,
     correctedReadoutTime = correctReadoutTimes(d->l2_readout_time + 1e-9*d->l2_readout_timeNsecs);
     br->Fill();
   }
-
+  f.cd();
   t->Write("", TObject::kOverwrite);
   f.Close();
   return 0;
