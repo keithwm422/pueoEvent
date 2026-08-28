@@ -72,7 +72,7 @@ PUEO_CONVERT_TYPE(/*|*/ header,    /*|*/  full_waveforms, /*|*/ pueo::RawHeader,
 PUEO_CONVERT_TYPE(/*|*/ attitude,  /*|*/  nav_att,        /*|*/ pueo::nav::Attitude,  /*|*/ nullptr,    /*|*/ 0,  /*|*/ "realTime", /*|*/  "realTimeNsecs"        )\
 PUEO_CONVERT_TYPE(/*|*/ sunsensors,/*|*/  ss,             /*|*/ pueo::nav::SunSensors,/*|*/ nullptr,    /*|*/ 0,  /*|*/ "readoutTime", /*|*/  "readoutTimeNsecs"  )\
 PUEO_CONVERT_TYPE(/*|*/ hsk,       /*|*/  sensors_disk,   /*|*/ pueo::hsk::Sensor,    /*|*/ nullptr,    /*|*/ 1,  /*|*/ "time_secs", /*|*/  "time_ms"             )\
-PUEO_CONVERT_TYPE(/*|*/ daqhsk,    /*|*/  daq_hsk,        /*|*/ pueo::daqhsk::DaqHsk, /*|*/ nullptr,    /*|*/ 0,  /*|*/ "l2_readout_time", /*|*/  "l2_readout_timeNsecs"   )\
+PUEO_CONVERT_TYPE(/*|*/ daqhsk,    /*|*/  daq_hsk,        /*|*/ pueo::daqhsk::DaqHsk, /*|*/ postprocess_daqhsk,    /*|*/ 0,  /*|*/ "l2_readout_time", /*|*/  "l2_readout_timeNsecs"   )\
 PUEO_CONVERT_TYPE(/*|*/ timemark,  /*|*/  timemark,       /*|*/ pueo::Timemark,       /*|*/ nullptr,    /*|*/ 0,  /*|*/ "rising.fSec", /*|*/  "rising.fNanoSec"   )\
 
 
@@ -120,6 +120,8 @@ template <> inline int arity<pueo_sensors_disk_t> (const pueo_sensors_disk_t * d
     /** Similar to above, but an argument can be a directory instead of a file and in that case everything in the directory is added */
     int convertFilesOrDirectories(const char * typetag, int N, const char ** in,  const char * outfile, const ConvertOpts & opts = ConvertOpts());
 
+    double correctReadoutTimes(double input_time);
+
     namespace tags
     {
       constexpr const char * automatic = "auto"; //since we can't use auto as a token :)
@@ -138,6 +140,7 @@ template <> inline int arity<pueo_sensors_disk_t> (const pueo_sensors_disk_t * d
     int postprocess_headers(const char * infile, const char * outfile, const char * args);
     int postprocess_attitudes(const char * infile, const char * outfile, const char * args) ;
     int postprocess_hsks(const char * infile, const char * outfile, const char * args) ;
+    int postprocess_daqhsk(const char * infile, const char * outfile, const char * args);
   }
 }
 
