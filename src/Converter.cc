@@ -37,7 +37,7 @@
 #include "TTreeIndex.h"
 #include "TTree.h"
 #include "TH2.h"
-
+#include "TDirectory.h"
 #include <vector>
 #include <iostream>
 #include <dirent.h>
@@ -356,6 +356,68 @@ int pueo::convert::convertFiles(const char * typetag, int nfiles, const char ** 
 static int convert_filter(const struct dirent * d)
 {
   return d->d_name[0]!='.';
+}
+
+double pueo::convert::correctReadoutTimes(double input_time)
+{
+  static std::vector<std::pair<double,double>> table;   // (readoutTime, correction)
+  static bool tried = false;
+
+  if (!tried)   // loaded once per process, on first use
+  {
+    TDirectory::TContext ctx;   // saves gDirectory now, restores it on scope exit
+    tried = true;
+    TFile f("readoutTime_corrections.root");
+    TTree * t = f.IsZombie() ? nullptr : (TTree*) f.Get("corrections");
+    if (!t) std::cerr << "correctReadoutTimes: no corrections file, times left uncorrected" << std::endl;
+    else
+    {
+      double rt = 0, cr = 0;
+      t->SetBranchStatus("*",0);
+      t->SetBranchStatus("readoutTime",1); t->SetBranchAddress("readoutTime",&rt);
+      t->SetBranchStatus("correction",1);  t->SetBranchAddress("correction",&cr);
+      table.resize(t->GetEntries());
+      for (Long64_t i = 0; i < t->GetEntries(); i++) { t->GetEntry(i); table[i] = {rt,cr}; }
+      std::sort(table.begin(), table.end());     // index, so lower_bound works
+      std::cout << "correctReadoutTimes: loaded " << table.size() << " corrections, "
+                << table.front().first << " to " << table.back().first << std::endl;
+    }
+  }
+
+  if (table.empty()) return input_time;
+
+  auto it = std::lower_bound(table.begin(), table.end(), std::make_pair(input_time,-1e300));
+  if (it == table.end()) --it;
+  else if (it != table.begin() && (input_time - (it-1)->first) < (it->first - input_time)) --it;
+  return input_time - it->second;                // correction is SUBTRACTED
+}
+
+int pueo::convert::postprocess_daqhsk(const char * infile, const char * outfile, const char * args)
+{
+  (void) args;
+  correctReadoutTimes(0.0);            // load the table before opening any file
+  if (rename(infile, outfile)) { std::cerr << "postprocess_daqhsk: rename failed" << std::endl; return 1; }
+
+  TFile f(outfile, "UPDATE");
+  TTree * t = f.IsZombie() ? nullptr : (TTree*) f.Get("daqhskTree");
+  if (!t) { std::cerr << "postprocess_daqhsk: no daqhskTree" << std::endl; return 1; }
+
+  pueo::daqhsk::DaqHsk * d = nullptr;
+  t->SetBranchAddress("daqhsk", &d);
+
+  double correctedReadoutTime = 0;
+  TBranch * br = t->Branch("correctedReadoutTime", &correctedReadoutTime, "correctedReadoutTime/D");
+
+  for (Long64_t i = 0; i < t->GetEntries(); i++)
+  {
+    t->GetEntry(i);
+    correctedReadoutTime = correctReadoutTimes(d->l2_readout_time + 1e-9*d->l2_readout_timeNsecs);
+    br->Fill();
+  }
+  f.cd();
+  t->Write("", TObject::kOverwrite);
+  f.Close();
+  return 0;
 }
 
 
